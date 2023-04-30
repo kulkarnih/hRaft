@@ -22,6 +22,6 @@ data RaftMessage =
 data RaftState = Leader | Follower | Candidate
                deriving (Show, Generic, Typeable, Eq)
 
-data Tick = Tick deriving (Show, Generic, Typeable)
+data Tick = Tick ProcessId deriving (Show, Generic, Typeable)
 
 instance Binary Tick

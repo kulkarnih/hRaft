@@ -1,4 +1,4 @@
-module Raft.Utils(
+module Raft.Server(
     startNode
 ) where
 
@@ -6,19 +6,38 @@ import Raft.Types
 
 import Network.Socket
 import Network.Transport (Transport)
-
 import Network.Transport.TCP
-import Control.Exception (IOException)
-import Control.Distributed.Process.Node
-import Control.Distributed.Process
 
+import Control.Concurrent ( threadDelay, forkIO )
+import Control.Exception (IOException)
+import Control.Monad (forever, void)
+import Control.Distributed.Process
+import Control.Distributed.Process.Node
+
+import System.Random (randomR, newStdGen)
 
 getTransport :: ServiceName -> IO (Either IOException Transport)
 getTransport port = createTransport (defaultTCPAddr "localhost" port) defaultTCPParameters
 
 handleTick :: Tick -> Process ()
-handleTick _ = do
-  liftIO $ putStrLn "Received a tick!"
+handleTick (Tick sender) = do
+  liftIO . putStrLn $ "Received a tick from " <> show sender <> "!"
+
+aMicroSecond :: Int
+aMicroSecond = 1000000
+
+tickSender :: ProcessId -> Process ()
+tickSender sendTo = do
+  randomGen <- liftIO newStdGen
+  let random = fst $ randomR (aMicroSecond, 2 * aMicroSecond) randomGen :: Int
+  liftIO $ threadDelay random
+  self <- getSelfPid
+  send sendTo $ Tick self
+
+loopWait :: Process ()
+loopWait = do
+  receiveWait [match handleTick]
+  loopWait
 
 spawnTickNode :: Process ()
 spawnTickNode = do
@@ -26,13 +45,16 @@ spawnTickNode = do
   node <- getSelfNode
   liftIO $ putStrLn $ "This is pid " <> show self
   liftIO $ putStrLn $ "This is node " <> show node
-  send self Tick
-  receiveWait [match handleTick]
+  void . spawnLocal . forever $ tickSender self
+  -- TODO: Looping looks ugly, re-factor.
+  loopWait
+
 
 spawnServer :: Transport -> IO ()
 spawnServer transport = do
   tickNode <- newLocalNode transport initRemoteTable
-  runProcess tickNode spawnTickNode 
+  threadId <- forkIO $ runProcess tickNode spawnTickNode
+  putStrLn $ "Started the main listener at " <> show threadId
   putStrLn "Press newline to exit." >> getLine >> putStrLn "Exiting"
   return ()
 
