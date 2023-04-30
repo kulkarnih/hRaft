@@ -5,6 +5,20 @@
 
 packages:
 - completed:
+    hackage: barbies-th-0.1.10@sha256:f1f1a6f9992d55308590f826ac813e19325b1fe4679f9036450f5cf0066261d3,1606
+    pantry-tree:
+      sha256: af8dfb32d9e51eff3e69a72d030eda5731b6eab7fe6d0e7cb976e066df183c2e
+      size: 657
+  original:
+    hackage: barbies-th-0.1.10
+- completed:
+    hackage: curryer-rpc-0.3.0@sha256:b4a926a5bcc93bcfa81b78485d47177e62e0b0ea3a56966c54a9d8c644ac5b5b,2750
+    pantry-tree:
+      sha256: 098520774ec8db20e0e8792faf97be4c53298829f7e904a574fe6b7efd877db4
+      size: 732
+  original:
+    hackage: curryer-rpc-0.3.0
+- completed:
     commit: 7b8cbf59cc7f291a524a5c405d514e48e6544182
     git: https://github.com/haskell-distributed/distributed-process.git
     name: distributed-process
@@ -23,12 +37,47 @@ packages:
   original:
     hackage: distributed-static-0.3.9
 - completed:
+    hackage: fast-builder-0.1.3.0@sha256:301a50188856ee88706c432c7d5c8c20f744a64a3cbf00346b8c84015c5ecac4,2802
+    pantry-tree:
+      sha256: 2e986a1ba09a2226836cd6f51c43368590f80e22f2a0b3ef5771fbe5a5d6fb39
+      size: 986
+  original:
+    hackage: fast-builder-0.1.3.0
+- completed:
     hackage: network-transport-tcp-0.8.1@sha256:775e0811943e44c0a3c40a7c0343c51cf92d520e5e9aee1c6958dca4e9d1fab5,3373
     pantry-tree:
       sha256: deef7c0c34faee15363f575e8367509eb5577d45bb868e2573e39c69aa1349b3
       size: 651
   original:
     hackage: network-transport-tcp-0.8.1
+- completed:
+    hackage: streamly-bytestring-0.2.0@sha256:aeb310e6e1788b2cdb765a781252c547cadfbae932010815f07f1fe514242ed2,2302
+    pantry-tree:
+      sha256: 7b884827d4da21e7c9582dae8747cdb2988b3f02e9915f67eb8e2b153c996f8f
+      size: 532
+  original:
+    hackage: streamly-bytestring-0.2.0
+- completed:
+    hackage: streamly-core-0.1.0@sha256:34c7c4e87b8d5e5956efd256483348d1230afb79283c93a470c6af2e21c7b625,17754
+    pantry-tree:
+      sha256: b630406e8c2d55176f27d6c2b35a64c91aef12ed7389cf08115a993ade1788b4
+      size: 10618
+  original:
+    hackage: streamly-core-0.1.0
+- completed:
+    hackage: streamly-0.9.0@sha256:8aedb49557487a3f642f6e4cc55830dc0832928f298e016e82e92e68da07f43f,19866
+    pantry-tree:
+      sha256: 7cf40022cbcf5e4aa34d33a9d44416adc08a81fb7bf15496f5025b26b5520069
+      size: 21867
+  original:
+    hackage: streamly-0.9.0
+- completed:
+    hackage: winery-1.4@sha256:13b560fffbeed4347512d06ee7a0f4c4aa48467dca8f12296e6728d682804d26,2921
+    pantry-tree:
+      sha256: dca07036d64fb97e207fbb867ef748af824016e2381c2d31852c5de5900ecec6
+      size: 1047
+  original:
+    hackage: winery-1.4
 snapshots:
 - completed:
     sha256: 42f77c84b34f68c30c2cd0bf8c349f617a0f428264362426290847a6a2019b64
