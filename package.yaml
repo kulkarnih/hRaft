@@ -44,6 +44,8 @@ library:
   - distributed-process
   - lens
   - mtl
+  - network
+  - network-transport
   - network-transport-tcp
   - random
 
@@ -57,10 +59,6 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - hRaft
-    - distributed-process
-    - network
-    - network-transport
-    - network-transport-tcp
 
 tests:
   hRaft-test:
