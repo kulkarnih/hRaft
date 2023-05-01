@@ -40,6 +40,7 @@ library:
   source-dirs: src
   dependencies:
   - binary
+  - bytestring
   - curryer-rpc
   - distributed-process
   - lens

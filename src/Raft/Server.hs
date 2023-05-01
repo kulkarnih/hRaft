@@ -5,18 +5,21 @@ module Raft.Server(
 import Raft.Types
 
 import Network.Socket
-import Network.Transport (Transport)
+import qualified Network.Transport as NT
 import Network.Transport.TCP
 
 import Control.Concurrent ( threadDelay, forkIO )
 import Control.Exception (IOException)
-import Control.Monad (forever, void)
+import Control.Monad (forever, void, forM_)
 import Control.Distributed.Process
 import Control.Distributed.Process.Node
 
-import System.Random (randomR, newStdGen)
+import qualified Data.ByteString.Char8 as BSChar
 
-getTransport :: ServiceName -> IO (Either IOException Transport)
+import System.Random (randomR, newStdGen)
+import Data.String (IsString(fromString))
+
+getTransport :: ServiceName -> IO (Either IOException NT.Transport)
 getTransport port = createTransport (defaultTCPAddr "localhost" port) defaultTCPParameters
 
 handleTick :: Tick -> Process ()
@@ -26,15 +29,21 @@ handleTick (Tick sender) = do
 aMicroSecond :: Int
 aMicroSecond = 1000000
 
-tickSender :: ProcessId -> Process ()
+tickSender :: [NodeId] -> Process ()
 tickSender sendTo = do
   randomGen <- liftIO newStdGen
   let random = fst $ randomR (aMicroSecond, 2 * aMicroSecond) randomGen :: Int
   liftIO $ threadDelay random
   self <- getSelfPid
-  -- Use nsendRemote for sending it to a remote process.
-  -- https://hackage.haskell.org/package/distributed-process-0.7.3/docs/Control-Distributed-Process-Internal-Primitives.html#v:nsendRemote
-  send sendTo $ Tick self
+  forM_ sendTo (\node -> nsendRemote node "RaftServer" (Tick self))
+
+-- Generate NodeId
+-- https://github.com/tweag/ch-nixops-example/blob/master/Main.hs#L77
+getNodeId :: String -> NodeId
+getNodeId port = NodeId . NT.EndPointAddress $ BSChar.intercalate ":" [ "localhost", fromString port, "0"]
+
+getNodeIds :: [String] -> [NodeId]
+getNodeIds = fmap getNodeId
 
 loopWait :: Process ()
 loopWait = do
@@ -50,12 +59,12 @@ spawnTickNode = do
   liftIO $ putStrLn $ "This is node " <> show node
   maybeProcessId <- whereis "RaftServer"
   liftIO $ putStrLn $ "This is whereis response " <> show maybeProcessId
-  void . spawnLocal . forever $ tickSender self
+  void . spawnLocal . forever $ tickSender $ getNodeIds ["8080", "8081"]
   -- TODO: Looping looks ugly, re-factor.
   loopWait
 
 
-spawnServer :: Transport -> IO ()
+spawnServer :: NT.Transport -> IO ()
 spawnServer transport = do
   tickNode <- newLocalNode transport initRemoteTable
   threadId <- forkIO $ runProcess tickNode spawnTickNode
