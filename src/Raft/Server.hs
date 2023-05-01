@@ -32,6 +32,8 @@ tickSender sendTo = do
   let random = fst $ randomR (aMicroSecond, 2 * aMicroSecond) randomGen :: Int
   liftIO $ threadDelay random
   self <- getSelfPid
+  -- Use nsendRemote for sending it to a remote process.
+  -- https://hackage.haskell.org/package/distributed-process-0.7.3/docs/Control-Distributed-Process-Internal-Primitives.html#v:nsendRemote
   send sendTo $ Tick self
 
 loopWait :: Process ()
@@ -43,8 +45,11 @@ spawnTickNode :: Process ()
 spawnTickNode = do
   self <- getSelfPid
   node <- getSelfNode
+  register "RaftServer" self
   liftIO $ putStrLn $ "This is pid " <> show self
   liftIO $ putStrLn $ "This is node " <> show node
+  maybeProcessId <- whereis "RaftServer"
+  liftIO $ putStrLn $ "This is whereis response " <> show maybeProcessId
   void . spawnLocal . forever $ tickSender self
   -- TODO: Looping looks ugly, re-factor.
   loopWait
