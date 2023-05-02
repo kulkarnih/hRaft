@@ -27,6 +27,7 @@ library
   exposed-modules:
       Raft.Server
       Raft.Types
+      Raft.Utils
   other-modules:
       Paths_hRaft
   hs-source-dirs:

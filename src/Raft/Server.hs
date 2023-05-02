@@ -3,6 +3,7 @@ module Raft.Server(
 ) where
 
 import Raft.Types
+import Raft.Utils
 
 import Network.Socket
 import qualified Network.Transport as NT
@@ -14,10 +15,8 @@ import Control.Monad (forever, void, forM_)
 import Control.Distributed.Process
 import Control.Distributed.Process.Node
 
-import qualified Data.ByteString.Char8 as BSChar
-
 import System.Random (randomR, newStdGen)
-import Data.String (IsString(fromString))
+
 
 getTransport :: ServiceName -> IO (Either IOException NT.Transport)
 getTransport port = createTransport (defaultTCPAddr "localhost" port) defaultTCPParameters
@@ -37,13 +36,8 @@ tickSender sendTo = do
   self <- getSelfPid
   forM_ sendTo (\node -> nsendRemote node "RaftServer" (Tick self))
 
--- Generate NodeId
--- https://github.com/tweag/ch-nixops-example/blob/master/Main.hs#L77
-getNodeId :: String -> NodeId
-getNodeId port = NodeId . NT.EndPointAddress $ BSChar.intercalate ":" [ "localhost", fromString port, "0"]
-
 getNodeIds :: [String] -> [NodeId]
-getNodeIds = fmap getNodeId
+getNodeIds = fmap (getNodeId "localhost")
 
 loopWait :: Process ()
 loopWait = do
