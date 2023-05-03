@@ -44,8 +44,8 @@ loopWait = do
   receiveWait [match handleTick]
   loopWait
 
-spawnTickNode :: Process ()
-spawnTickNode = do
+spawnTickNode :: Neighbours -> Process ()
+spawnTickNode neighbours = do
   self <- getSelfPid
   node <- getSelfNode
   register "RaftServer" self
@@ -53,23 +53,23 @@ spawnTickNode = do
   liftIO $ putStrLn $ "This is node " <> show node
   maybeProcessId <- whereis "RaftServer"
   liftIO $ putStrLn $ "This is whereis response " <> show maybeProcessId
-  void . spawnLocal . forever $ tickSender $ getNodeIds ["8080", "8081"]
+  void . spawnLocal . forever $ tickSender $ getNodeIds neighbours
   -- TODO: Looping looks ugly, re-factor.
   loopWait
 
 
-spawnServer :: NT.Transport -> IO ()
-spawnServer transport = do
+spawnServer ::Neighbours -> NT.Transport -> IO ()
+spawnServer neighbours transport = do
   tickNode <- newLocalNode transport initRemoteTable
-  threadId <- forkIO $ runProcess tickNode spawnTickNode
+  threadId <- forkIO $ runProcess tickNode (spawnTickNode neighbours)
   putStrLn $ "Started the main listener at " <> show threadId
   putStrLn "Press newline to exit." >> getLine >> putStrLn "Exiting"
   return ()
 
-startNode :: ServiceName -> IO ()
-startNode port = do
+startNode :: ServiceName -> Neighbours -> IO ()
+startNode port neighbours = do
   transport' <- getTransport port
   either
     (\err -> putStrLn "Could not start the node." >>  print err)
-    spawnServer
+    (spawnServer neighbours)
     transport'

@@ -41,6 +41,7 @@ library:
   dependencies:
   - binary
   - bytestring
+  - containers
   - curryer-rpc
   - distributed-process
   - lens
@@ -48,6 +49,7 @@ library:
   - network
   - network-transport
   - network-transport-tcp
+  - parsec
   - random
 
 executables:

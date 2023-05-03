@@ -11,4 +11,3 @@ import Data.String (fromString)
 -- https://github.com/tweag/ch-nixops-example/blob/master/Main.hs#L77
 getNodeId :: String -> String -> NodeId
 getNodeId host port = NodeId . NT.EndPointAddress $ BSChar.intercalate ":" [ fromString host, fromString port, "0"]
-
