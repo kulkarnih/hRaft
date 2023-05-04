@@ -24,8 +24,13 @@ data RaftMessage =
 data RaftState = Leader | Follower | Candidate
                deriving (Show, Generic, Typeable, Eq)
 
+data ServerConfig = ServerConfig {
+    myId  :: ProcessId
+  , peers :: [ProcessId]
+}
+
 newtype Tick = Tick ProcessId deriving (Show, Generic, Typeable)
 
-instance Binary Tick
-
 type Neighbours = [ServiceName]
+
+instance Binary Tick
