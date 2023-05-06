@@ -51,10 +51,23 @@ library:
   - network-transport-tcp
   - parsec
   - random
+  - stm
+  - stm-containers
+  - winery
 
 executables:
   hRaft-exe:
     main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - hRaft
+
+  hRaft-Curryer-exe:
+    main:                Curryer.hs
     source-dirs:         app
     ghc-options:
     - -threaded

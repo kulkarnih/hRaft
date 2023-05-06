@@ -44,6 +44,7 @@ loopWait = do
   receiveWait [match handleTick]
   loopWait
 
+-- Tick node that sends a tick randomly between 1-2 microseconds
 spawnTickNode :: Neighbours -> Process ()
 spawnTickNode neighbours = do
   self <- getSelfPid
@@ -57,8 +58,8 @@ spawnTickNode neighbours = do
   -- TODO: Looping looks ugly, re-factor.
   loopWait
 
-
-spawnServer ::Neighbours -> NT.Transport -> IO ()
+-- Main Raft Server
+spawnServer :: Neighbours -> NT.Transport -> IO ()
 spawnServer neighbours transport = do
   tickNode <- newLocalNode transport initRemoteTable
   threadId <- forkIO $ runProcess tickNode (spawnTickNode neighbours)
