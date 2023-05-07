@@ -27,6 +27,7 @@ library
   exposed-modules:
       Config.Parser
       Config.Types
+      Raft.App
       Raft.Client
       Raft.Server
       Raft.Types

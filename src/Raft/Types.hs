@@ -4,6 +4,8 @@ module Raft.Types(
     Neighbours
   , RaftMessage
   , RaftState
+  , LocalTick(..)
+  , RaftConfig(..)
   , Tick(..)
 ) where
 
@@ -12,8 +14,11 @@ import GHC.Generics (Generic)
 import Data.Data (Typeable)
 import Data.Binary (Binary)
 import Network.Socket
+import Control.Distributed.Process.Internal.Types (LocalNode)
 
 -- Use Generic for deriving Serialisable. Typeable to make it type safe.
+
+type Neighbours = [ServiceName]
 
 data RaftMessage =
     Heartbeat { _heartBeatSender :: ProcessId, recipient :: ProcessId }
@@ -24,13 +29,15 @@ data RaftMessage =
 data RaftState = Leader | Follower | Candidate
                deriving (Show, Generic, Typeable, Eq)
 
-data ServerConfig = ServerConfig {
-    myId  :: ProcessId
-  , peers :: [ProcessId]
+data RaftConfig = RaftConfig {
+    raftConfigLocalNode  :: LocalNode
+  , raftConfigPort :: ServiceName
+  , raftConfigNeighbours :: Neighbours
 }
 
 newtype Tick = Tick ProcessId deriving (Show, Generic, Typeable)
 
-type Neighbours = [ServiceName]
+data LocalTick = LocalTick deriving (Show, Generic, Typeable)
 
 instance Binary Tick
+instance Binary LocalTick

@@ -1,76 +1,60 @@
 module Raft.Server(
-    startNode
+    initServer
 ) where
 
+import Raft.App (RaftApp)
 import Raft.Types
 import Raft.Utils
 
-import Network.Socket
-import qualified Network.Transport as NT
-import Network.Transport.TCP
+import Control.Concurrent ( forkIO )
 
-import Control.Concurrent ( threadDelay, forkIO )
-import Control.Exception (IOException)
-import Control.Monad (forever, void, forM_)
 import Control.Distributed.Process
 import Control.Distributed.Process.Node
 
-import System.Random (randomR, newStdGen)
+import Control.Monad (forM_)
+import Control.Monad.Reader (asks)
 
-
-getTransport :: ServiceName -> IO (Either IOException NT.Transport)
-getTransport port = createTransport (defaultTCPAddr "localhost" port) defaultTCPParameters
-
+-- When you receieve a tick from remote nodes, log them.
 handleTick :: Tick -> Process ()
 handleTick (Tick sender) = do
   liftIO . putStrLn $ "Received a tick from " <> show sender <> "!"
 
-aMicroSecond :: Int
-aMicroSecond = 1000000
-
-tickSender :: [NodeId] -> Process ()
-tickSender sendTo = do
-  randomGen <- liftIO newStdGen
-  let random = fst $ randomR (aMicroSecond, 2 * aMicroSecond) randomGen :: Int
-  liftIO $ threadDelay random
+-- When you receive the tick from local client after timeout send a tick to other nodes.
+handleLocalTick :: LocalTick -> Neighbours -> Process ()
+handleLocalTick _ neighbours = do
+  liftIO . putStrLn $ "Received a local tick! Sending a tick to all neighbours."
   self <- getSelfPid
-  forM_ sendTo (\node -> nsendRemote node "RaftServer" (Tick self))
+  forM_ (getNodeIds neighbours) (\node -> nsendRemote node raftServerName (Tick self))
 
-getNodeIds :: [String] -> [NodeId]
-getNodeIds = fmap (getNodeId "localhost")
+loopWait :: Neighbours -> Process ()
+loopWait neighbours = do
+  -- liftIO $ putStrLn "Waiting in loop for a tick message, local or remote."
+  receiveWait [
+      match handleTick
+    , match $ flip handleLocalTick neighbours
+    ]
+  loopWait neighbours
 
-loopWait :: Process ()
-loopWait = do
-  receiveWait [match handleTick]
-  loopWait
-
--- Tick node that sends a tick randomly between 1-2 microseconds
-spawnTickNode :: Neighbours -> Process ()
-spawnTickNode neighbours = do
+raftServerInit :: Neighbours -> Process ()
+raftServerInit neighbours = do
   self <- getSelfPid
   node <- getSelfNode
-  register "RaftServer" self
+  register raftServerName self
   liftIO $ putStrLn $ "This is pid " <> show self
   liftIO $ putStrLn $ "This is node " <> show node
-  maybeProcessId <- whereis "RaftServer"
+  maybeProcessId <- whereis raftServerName
   liftIO $ putStrLn $ "This is whereis response " <> show maybeProcessId
-  void . spawnLocal . forever $ tickSender $ getNodeIds neighbours
   -- TODO: Looping looks ugly, re-factor.
-  loopWait
+  loopWait neighbours
 
--- Main Raft Server
-spawnServer :: Neighbours -> NT.Transport -> IO ()
-spawnServer neighbours transport = do
-  tickNode <- newLocalNode transport initRemoteTable
-  threadId <- forkIO $ runProcess tickNode (spawnTickNode neighbours)
-  putStrLn $ "Started the main listener at " <> show threadId
-  putStrLn "Press newline to exit." >> getLine >> putStrLn "Exiting"
-  return ()
+-- TODO: Check how RaftApp can include Process monad in it. Prevent having to send neighbours.
+spawnServer :: Neighbours -> LocalNode -> IO ()
+spawnServer neighbours localNode = do
+  threadId <- forkIO $ runProcess localNode (raftServerInit neighbours)
+  putStrLn $ "Started Raft Server Process at " <> show threadId
 
-startNode :: ServiceName -> Neighbours -> IO ()
-startNode port neighbours = do
-  transport' <- getTransport port
-  either
-    (\err -> putStrLn "Could not start the node." >>  print err)
-    (spawnServer neighbours)
-    transport'
+initServer :: RaftApp ()
+initServer = do
+  localNode <- asks raftConfigLocalNode
+  nbrs <- asks raftConfigNeighbours
+  liftIO $ spawnServer nbrs localNode
