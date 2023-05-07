@@ -11,7 +11,7 @@ import Control.Concurrent ( forkIO )
 import Control.Distributed.Process
 import Control.Distributed.Process.Node
 
-import Control.Monad (forM_)
+import Control.Monad (forever, forM_)
 import Control.Monad.Reader (asks)
 
 -- When you receieve a tick from remote nodes, log them.
@@ -26,14 +26,13 @@ handleLocalTick _ neighbours = do
   self <- getSelfPid
   forM_ (getNodeIds neighbours) (\node -> nsendRemote node raftServerName (Tick self))
 
-loopWait :: Neighbours -> Process ()
-loopWait neighbours = do
+messageHandler :: Neighbours -> Process ()
+messageHandler neighbours = do
   -- liftIO $ putStrLn "Waiting in loop for a tick message, local or remote."
   receiveWait [
       match handleTick
     , match $ flip handleLocalTick neighbours
     ]
-  loopWait neighbours
 
 raftServerInit :: Neighbours -> Process ()
 raftServerInit neighbours = do
@@ -44,8 +43,7 @@ raftServerInit neighbours = do
   liftIO $ putStrLn $ "This is node " <> show node
   maybeProcessId <- whereis raftServerName
   liftIO $ putStrLn $ "This is whereis response " <> show maybeProcessId
-  -- TODO: Looping looks ugly, re-factor.
-  loopWait neighbours
+  forever $ messageHandler neighbours
 
 -- TODO: Check how RaftApp can include Process monad in it. Prevent having to send neighbours.
 spawnServer :: Neighbours -> LocalNode -> IO ()
