@@ -27,6 +27,7 @@ library
   exposed-modules:
       Config.Parser
       Config.Types
+      Raft.Client
       Raft.Server
       Raft.Types
       Raft.Utils
@@ -56,7 +57,7 @@ library
     , winery
   default-language: Haskell2010
 
-executable hRaft-curryer-exe
+executable hRaft-exe
   main-is: Main.hs
   other-modules:
       Paths_hRaft

@@ -3,8 +3,9 @@ module Main (main) where
 import Raft.Server
 import Config.Parser (parseConfig)
 import Config.Types
--- import Config.Types (InitConfig(InitConfig))
 
+
+-- Elixir node communication basics -> https://dev.to/postelxpro/nodes-1jaf
 main :: IO ()
 main = do
   config <- parseConfig
