@@ -29,6 +29,7 @@ library
       Config.Types
       Raft.App
       Raft.Client
+      Raft.Init
       Raft.Server
       Raft.Types
       Raft.Utils

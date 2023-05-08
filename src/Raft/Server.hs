@@ -46,6 +46,8 @@ raftServerInit neighbours = do
   forever $ messageHandler neighbours
 
 -- TODO: Check how RaftApp can include Process monad in it. Prevent having to send neighbours.
+-- TODO: Do away with neighbours by connecting to the same backend using P2P topology.
+-- https://haskell-distributed.github.io/tutorials/2ch.html
 spawnServer :: Neighbours -> LocalNode -> IO ()
 spawnServer neighbours localNode = do
   threadId <- forkIO $ runProcess localNode (raftServerInit neighbours)
