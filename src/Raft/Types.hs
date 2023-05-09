@@ -29,6 +29,11 @@ data RaftMessage =
 data RaftState = Leader | Follower | Candidate
                deriving (Show, Generic, Typeable, Eq)
 
+data ServerState = ServerState {
+    serverRaftState :: RaftState
+  , serverTerm :: Int
+}
+
 data RaftConfig = RaftConfig {
     raftConfigLocalNode  :: LocalNode
   , raftConfigPort :: ServiceName
