@@ -11,7 +11,7 @@ import Control.Concurrent ( forkIO )
 import Control.Distributed.Process
 import Control.Distributed.Process.Node
 
-import Control.Monad (forever, forM_)
+import Control.Monad (forever)
 import Control.Monad.Reader (asks)
 
 -- When you receieve a tick from remote nodes, log them.
@@ -24,7 +24,8 @@ handleLocalTick :: LocalTick -> Neighbours -> Process ()
 handleLocalTick _ neighbours = do
   liftIO . putStrLn $ "Received a local tick! Sending a tick to all neighbours."
   self <- getSelfPid
-  forM_ (getNodeIds neighbours) (\node -> nsendRemote node raftServerName (Tick self))
+  -- forM_ (getNodeIds neighbours) (\node -> nsendRemote node raftServerName (Tick self))
+  sendMessageToNeighbours neighbours (Tick self)
 
 messageHandler :: Neighbours -> Process ()
 messageHandler neighbours = do
@@ -33,6 +34,12 @@ messageHandler neighbours = do
       match handleTick
     , match $ flip handleLocalTick neighbours
     ]
+
+_initiateElection :: Neighbours -> Process ()
+_initiateElection nbrs = do
+  self <- getSelfPid
+  -- forM_ (getNodeIds nbrs) (\node -> nsendRemote node raftServerName (VoteRequest self))
+  sendMessageToNeighbours nbrs (VoteRequest self)
 
 raftServerInit :: Neighbours -> Process ()
 raftServerInit neighbours = do

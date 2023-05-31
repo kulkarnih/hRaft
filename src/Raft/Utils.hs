@@ -5,19 +5,24 @@ module Raft.Utils (
   , getNodeIds
   , getTransport
   , raftServerName
+  , sendMessageToNeighbours
 ) where
 
 import Control.Distributed.Process
 import Control.Distributed.Process.Node
 import Control.Exception (IOException)
+import Control.Monad (forM_)
 
 import Network.Socket (ServiceName)
 import qualified Network.Transport as NT
 import Network.Transport.TCP
 
+import Data.Binary (Binary)
 import qualified Data.ByteString.Char8 as BSChar
+import Data.Data (Typeable)
 import Data.String (fromString)
 
+import Raft.Types
 
 raftServerName :: String
 raftServerName = "RaftServer"
@@ -41,3 +46,6 @@ getNodeId host port = NodeId . NT.EndPointAddress $ BSChar.intercalate ":" [ fro
 
 getNodeIds :: [String] -> [NodeId]
 getNodeIds = fmap (getNodeId localHostName)
+
+sendMessageToNeighbours :: (Typeable a, Binary a) => Neighbours -> a -> Process ()
+sendMessageToNeighbours nbrs msg = forM_ (getNodeIds nbrs) (\node -> nsendRemote node raftServerName msg)

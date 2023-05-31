@@ -2,7 +2,7 @@
 
 module Raft.Types(
     Neighbours
-  , RaftMessage
+  , RaftMessage(..)
   , RaftState
   , LocalTick(..)
   , RaftConfig(..)
@@ -21,8 +21,8 @@ import Control.Distributed.Process.Internal.Types (LocalNode)
 type Neighbours = [ServiceName]
 
 data RaftMessage =
-    Heartbeat { _heartBeatSender :: ProcessId, recipient :: ProcessId }
-  | VoteRequest { _voteRequestSender :: ProcessId, recipient :: ProcessId }
+    Heartbeat { _heartBeatSender :: ProcessId}
+  | VoteRequest { _voteRequestSender :: ProcessId }
   | VoteResponse { recipient :: ProcessId }
   deriving (Show, Generic, Typeable)
 
@@ -30,8 +30,8 @@ data RaftState = Leader | Follower | Candidate
                deriving (Show, Generic, Typeable, Eq)
 
 data ServerState = ServerState {
-    serverRaftState :: RaftState
-  , serverTerm :: Int
+    _serverRaftState :: RaftState
+  , _serverTerm :: Int
 }
 
 data RaftConfig = RaftConfig {
@@ -46,3 +46,4 @@ data LocalTick = LocalTick deriving (Show, Generic, Typeable)
 
 instance Binary Tick
 instance Binary LocalTick
+instance Binary RaftMessage
